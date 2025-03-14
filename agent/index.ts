@@ -1,12 +1,17 @@
-import { fpcore } from "../core/FPCore";
-
+// import { entry } from "../business/xhs/xhs";
+import { entry } from "../business/wework/wework";
+// custom log
+let originalLog = console.log;
+console.log = (...args: any[]) => {
+  let timestamp = new Date();
+  let tid = Process.getCurrentThreadId();
+  let prefix = `${timestamp} ${tid}`;
+  let postfix = "\n" + "*".repeat(120);
+  originalLog(prefix, ...args, postfix);
+};
+// main
 function main() {
-  Interceptor.attach(Module.getExportByName(null, "open"), {
-    onEnter(args) {
-      const path = args[0].readUtf8String();
-      fpcore.log.logToConsole(`open() path6="${path}"`);
-    },
-  });
+  entry();
 }
 
 setImmediate(main);

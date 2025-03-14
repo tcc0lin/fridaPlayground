@@ -1,2 +1,6 @@
 /_agent.js
 /node_modules
+*.log
+generated/
+__pycache__/
+*.pyi

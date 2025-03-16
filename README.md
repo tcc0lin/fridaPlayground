@@ -7,7 +7,7 @@
 
 为安全研究人员和开发者提供高效、可扩展的解决方案
 
-### 使用方式
+### 一、使用方式
 
 ```sh
 $ git clone https://github.com/tcc0lin/FridaPlayground.git
@@ -15,9 +15,11 @@ $ cd FridaPlayground/
 $ npm install
 ## after edit index.ts
 $ npm run build
-$ frida -U -f com.example.android -l _agent.js
+$ frida -U -f com.example.android -l _agent.js -o run.log
 ```
 
-### 案例参考
+### 二、已支持的功能
 
-examples
+### 三、案例参考
+
+business目录

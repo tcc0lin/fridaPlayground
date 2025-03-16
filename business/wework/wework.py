@@ -1,12 +1,20 @@
 import json
 import frida
-import struct
 from pprint import pprint as print
+
+TARGET_PKG_NAME = "com.tencent.wework"
+TARGET_NAME = "企业微信"
+log_file = open("wework_network.log", "w+")
 
 
 def on_message(message, data):
-    print(message)
-    print(data)
+    write_data = {
+        "so_name": message["payload"]["so_name"],
+        "func": message["payload"]["func"],
+        "data": data.hex(),
+    }
+    log_file.write(json.dumps(write_data) + "\n")
+    log_file.flush()
 
 
 def load_script(session):
@@ -17,16 +25,18 @@ def load_script(session):
         return script
 
 
-# choose run_mode
-run_mode = "attach"
-if run_mode == "attach":
-    session = frida.get_usb_device().attach("企业微信")
-    script = load_script(session)
-elif run_mode == "spawn":
-    device = frida.get_usb_device()
-    pid = device.spawn(["com.tencent.wework"])
-    session = device.attach(pid)
-    script = load_script(session)
-    device.resume(pid)
-script.post({"type": "run_mode", "payload": run_mode})
-input()
+def run(run_mode: str):
+    if run_mode == "attach":
+        session = frida.get_usb_device().attach(TARGET_NAME)
+        script = load_script(session)
+    elif run_mode == "spawn":
+        device = frida.get_usb_device()
+        pid = device.spawn([TARGET_PKG_NAME])
+        session = device.attach(pid)
+        script = load_script(session)
+        device.resume(pid)
+    script.post({"type": "run_mode", "payload": run_mode})
+    input()
+
+
+run("spawn")

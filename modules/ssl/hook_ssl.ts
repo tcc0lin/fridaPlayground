@@ -110,7 +110,7 @@ export function hook_evp_encryptupdate(
   Interceptor.attach(EVP_EncryptUpdate_ptr, {
     onEnter: function (args) {
       this.out = args[1];
-      this.outl = args[2];
+      this.outl = args[2].toInt32();
       this.in = args[3];
       this.inl = args[4].toInt32();
       let func_info = `onEnter EVP_EncryptUpdate { size: ${
@@ -124,6 +124,9 @@ export function hook_evp_encryptupdate(
       callback(model);
     },
     onLeave: function (retval) {
+      if (this.outl == null || this.outl < 0) {
+        return;
+      }
       let func_info = `onLeave EVP_EncryptUpdate { size: ${
         this.outl
       } size_hex: 0x${this.outl.toString(16)} }\n`;
@@ -146,7 +149,7 @@ export function hook_evp_decryptupdate(
   Interceptor.attach(EVP_DecryptUpdate_ptr, {
     onEnter: function (args) {
       this.out = args[1];
-      this.outl = args[2];
+      this.outl = args[2].toInt32();
       this.in = args[3];
       this.inl = args[4].toInt32();
       let func_info = `onEnter EVP_DecryptUpdate { size: ${
@@ -155,6 +158,9 @@ export function hook_evp_decryptupdate(
       console.log(prefix, func_info, this.in.readByteArray(this.inl));
     },
     onLeave: function (retval) {
+      if (this.outl == null || this.outl < 0) {
+        return;
+      }
       let func_info = `onLeave EVP_DecryptUpdate { size: ${
         this.outl
       } size_hex: 0x${this.outl.toString(16)} }\n`;

@@ -1,5 +1,6 @@
 import json
 import frida
+from datetime import datetime
 from pprint import pprint as print
 
 TARGET_PKG_NAME = "com.tencent.wework"
@@ -8,7 +9,10 @@ log_file = open("wework_network.log", "w+")
 
 
 def on_message(message, data):
+    if not data:
+        return
     write_data = {
+        "timestamp": str(datetime.now()),
         "so_name": message["payload"]["so_name"],
         "func": message["payload"]["func"],
         "data": data.hex(),
@@ -39,4 +43,5 @@ def run(run_mode: str):
     input()
 
 
-run("spawn")
+run("attach")
+# run("spawn")

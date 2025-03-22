@@ -43,5 +43,5 @@ def run(run_mode: str):
     input()
 
 
-run("attach")
-# run("spawn")
+# run("attach")
+run("spawn")

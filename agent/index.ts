@@ -1,5 +1,6 @@
 // import { entry } from "../business/xhs/xhs";
 import { entry } from "../business/wework/wework";
+// import { entry } from "../business/wechat/wechat";
 // custom log
 let originalLog = console.log;
 console.log = (...args: any[]) => {

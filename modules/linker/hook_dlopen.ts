@@ -7,6 +7,7 @@ export function hook_dlopen(
     Interceptor.attach(android_dlopen_ext, {
       onEnter: function (args) {
         var soName = args[0].readCString();
+        console.log(soName)
         if (soName != null && soName.indexOf(target_so) != -1) {
           this.find = true;
         }

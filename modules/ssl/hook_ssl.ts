@@ -273,3 +273,41 @@ export function hook_crypto_cbc128_encrypt(so_name: string) {
     },
   });
 }
+
+export function hook_tls13_hkdf_expand(so_name: string) {
+  let prefix = `[ ${so_name} ]`;
+  var tls13_hkdf_expand_ptr = Module.getExportByName(
+    so_name,
+    "tls13_hkdf_expand"
+  );
+  Interceptor.attach(tls13_hkdf_expand_ptr, {
+    onEnter: function (args) {
+      // console.log("caccacacacac")
+      // this.ctx = args[0];
+      // this.out = args[1];
+      // this.out_len = args[2];
+      // this.secret = args[3];
+      // this.secret_len = args[4];
+      this.label = args[3];
+      this.label_len = args[4];
+
+
+      // // 读取输入的 secret 和 label
+      // if (this.secret_len.toInt32() > 0) {
+      //   const secretData = this.secret.readByteArray(this.secret_len.toInt32());
+      //   console.log("输入密钥:", secretData.hex());
+      // }
+
+      if (this.label_len.toInt32() > 0) {
+        // const labelData = this.label.readByteArray(this.label_len.toInt32());
+        console.log("输入标签:", this.label.readByteArray(this.label_len.toInt32()));
+      }
+    },
+    onLeave: function (retval) {
+      // if (this.out_len.toInt32() > 0) {
+      //   const outData = this.out.readByteArray(this.out_len.toInt32());
+      //   console.log("输出密钥:", outData.hex());
+      // }
+    },
+  });
+}

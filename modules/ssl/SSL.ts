@@ -9,6 +9,7 @@ import {
   hook_aes_set_encrypt_key,
   hook_aes_cbc_encrypt,
   hook_crypto_cbc128_encrypt,
+  hook_tls13_hkdf_expand
 } from "./hook_ssl";
 import { hook_socket_stream } from "./hook_ssl_java";
 export class SSL {
@@ -30,6 +31,7 @@ export class SSL {
     hook_aes_set_encrypt_key(so_name, callback);
     hook_aes_cbc_encrypt(so_name);
     hook_crypto_cbc128_encrypt(so_name);
+    hook_tls13_hkdf_expand(so_name);
   }
   public hook_socket_stream() {
     hook_socket_stream();

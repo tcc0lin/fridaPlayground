@@ -15,7 +15,7 @@ import { hook_socket_stream } from "./hook_ssl_java";
 export class SSL {
   public hook_ssl_data(
     so_name: string = "libssl.so",
-    callback: (ctx: InvocationContext, model: CallbackModel) => void = () => {}
+    callback: (ctx: InvocationContext, model: CallbackModel) => void = () => { },
   ): void {
     hook_ssl_write(so_name, callback);
     hook_ssl_read(so_name, callback);
@@ -23,7 +23,7 @@ export class SSL {
   }
   public hook_ssl_cipher(
     so_name: string = "libssl.so",
-    callback: (ctx: InvocationContext, model: CallbackModel) => void = () => {}
+    callback: (ctx: InvocationContext, model: CallbackModel) => void = () => { }
   ): void {
     hook_evp_cipherupdate(so_name);
     hook_evp_encryptupdate(so_name, callback);

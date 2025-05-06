@@ -1,18 +1,24 @@
 import { CallbackModel } from "../Model";
 export function hook_ssl_write(
   so_name: string,
-  callback: (ctx: InvocationContext, model: CallbackModel) => void = () => {}
+  callback: (ctx: InvocationContext, model: CallbackModel) => void = () => { },
+  address: number = 0
 ) {
-  var SSL_write_ptr = Module.getExportByName(so_name, "SSL_write");
+  var SSL_write_ptr;
+  if (address != 0) {
+    SSL_write_ptr = Module.getBaseAddress(so_name).add(address);
+  } else {
+    SSL_write_ptr = Module.getExportByName(so_name, "SSL_write");
+  }
+  console.log("SSL_write_ptr: " + SSL_write_ptr)
   let prefix = `[ ${so_name} ]`;
   Interceptor.attach(SSL_write_ptr, {
     onEnter: function (args) {
       this.ssl = args[0].toString();
       this.buf = args[1];
       this.size = args[2].toInt32();
-      let func_info = `onEnter SSL_write { size: ${
-        this.size
-      } size_hex: 0x${this.size.toString(16)} }\n`;
+      let func_info = `onEnter SSL_write { size: ${this.size
+        } size_hex: 0x${this.size.toString(16)} }\n`;
       console.log(prefix, func_info, this.buf.readByteArray(this.size));
       // callback
       let model = new CallbackModel();
@@ -20,15 +26,22 @@ export function hook_ssl_write(
       model.setData(this.buf.readByteArray(this.size));
       callback(this, model);
     },
-    onLeave: function (retval) {},
+    onLeave: function (retval) { },
   });
 }
 
 export function hook_ssl_read(
   so_name: string,
-  callback: (tx: InvocationContext, model: CallbackModel) => void = () => {}
+  callback: (tx: InvocationContext, model: CallbackModel) => void = () => { },
+  address: number = 0
 ) {
-  var SSL_read_ptr = Module.getExportByName(so_name, "SSL_read");
+  var SSL_read_ptr;
+  if (address != 0) {
+    SSL_read_ptr = Module.getBaseAddress(so_name).add(address);
+  } else {
+    SSL_read_ptr = Module.getExportByName(so_name, "SSL_read");
+  }
+  console.log("SSL_read_ptr: " + SSL_read_ptr)
   let prefix = `[ ${so_name} ]`;
   Interceptor.attach(SSL_read_ptr, {
     onEnter: function (args) {
@@ -61,12 +74,11 @@ export function hook_bio_write(so_name: string) {
       this.bio = args[0];
       this.dataPtr = args[1];
       this.len = args[2].toInt32();
-      let func_info = `onEnter BIO_write { size: ${
-        this.len
-      } size_hex: 0x${this.len.toString(16)} }\n`;
+      let func_info = `onEnter BIO_write { size: ${this.len
+        } size_hex: 0x${this.len.toString(16)} }\n`;
       console.log(prefix, func_info, this.dataPtr.readByteArray(this.len));
     },
-    onLeave: function (retval) {},
+    onLeave: function (retval) { },
   });
 }
 
@@ -95,16 +107,15 @@ export function hook_evp_cipherupdate(so_name: string) {
         return;
       }
       this.outl = this.outl.readInt();
-      let func_info = `onLeave EVP_CipherUpdate { size: ${
-        this.outl
-      } size_hex: 0x${this.outl.toString(16)} }\n`;
+      let func_info = `onLeave EVP_CipherUpdate { size: ${this.outl
+        } size_hex: 0x${this.outl.toString(16)} }\n`;
       console.log(prefix, func_info, this.out.readByteArray(this.outl));
     },
   });
 }
 export function hook_evp_encryptupdate(
   so_name: string,
-  callback: (ctx: InvocationContext, model: CallbackModel) => void = () => {}
+  callback: (ctx: InvocationContext, model: CallbackModel) => void = () => { }
 ) {
   let prefix = `[ ${so_name} ]`;
   var EVP_EncryptUpdate_ptr = Module.getExportByName(
@@ -118,9 +129,8 @@ export function hook_evp_encryptupdate(
       this.outl = args[2];
       this.in = args[3];
       this.inl = args[4].toInt32();
-      let func_info = `onEnter EVP_EncryptUpdate { size: ${
-        this.inl
-      } size_hex: 0x${this.inl.toString(16)} }\n`;
+      let func_info = `onEnter EVP_EncryptUpdate { size: ${this.inl
+        } size_hex: 0x${this.inl.toString(16)} }\n`;
       console.log(prefix, func_info, this.in.readByteArray(this.inl));
       // callback
       let model = new CallbackModel();
@@ -133,16 +143,15 @@ export function hook_evp_encryptupdate(
         return;
       }
       this.outl = this.outl.readInt();
-      let func_info = `onLeave EVP_EncryptUpdate { size: ${
-        this.outl
-      } size_hex: 0x${this.outl.toString(16)} }\n`;
+      let func_info = `onLeave EVP_EncryptUpdate { size: ${this.outl
+        } size_hex: 0x${this.outl.toString(16)} }\n`;
       console.log(prefix, func_info, this.out.readByteArray(this.outl));
     },
   });
 }
 export function hook_evp_decryptupdate(
   so_name: string,
-  callback: (ctx: InvocationContext, model: CallbackModel) => void = () => {}
+  callback: (ctx: InvocationContext, model: CallbackModel) => void = () => { }
 ) {
   let prefix = `[ ${so_name} ]`;
   var EVP_DecryptUpdate_ptr = Module.getExportByName(
@@ -158,9 +167,8 @@ export function hook_evp_decryptupdate(
       this.outl = args[2];
       this.in = args[3];
       this.inl = args[4].toInt32();
-      let func_info = `onEnter EVP_DecryptUpdate { size: ${
-        this.inl
-      } size_hex: 0x${this.inl.toString(16)} }\n`;
+      let func_info = `onEnter EVP_DecryptUpdate { size: ${this.inl
+        } size_hex: 0x${this.inl.toString(16)} }\n`;
       console.log(prefix, func_info, this.in.readByteArray(this.inl));
     },
     onLeave: function (retval) {
@@ -168,9 +176,8 @@ export function hook_evp_decryptupdate(
         return;
       }
       this.outl = this.outl.readInt();
-      let func_info = `onLeave EVP_DecryptUpdate { size: ${
-        this.outl
-      } size_hex: 0x${this.outl.toString(16)} }\n`;
+      let func_info = `onLeave EVP_DecryptUpdate { size: ${this.outl
+        } size_hex: 0x${this.outl.toString(16)} }\n`;
       console.log(prefix, func_info, this.out.readByteArray(this.outl));
       // callback
       let model = new CallbackModel();
@@ -182,7 +189,7 @@ export function hook_evp_decryptupdate(
 }
 export function hook_aes_set_encrypt_key(
   so_name: string,
-  callback: (ctx: InvocationContext, model: CallbackModel) => void = () => {}
+  callback: (ctx: InvocationContext, model: CallbackModel) => void = () => { }
 ) {
   let prefix = `[ ${so_name} ]`;
   var AES_set_encrypt_key_ptr = Module.getExportByName(
@@ -194,9 +201,8 @@ export function hook_aes_set_encrypt_key(
     onEnter: function (args) {
       this.data_ptr = args[0];
       this.size = 16;
-      let func_info = `onEnter AES_set_encrypt_key { size: ${
-        this.size
-      } size_hex: 0x${this.size.toString(16)} }\n`;
+      let func_info = `onEnter AES_set_encrypt_key { size: ${this.size
+        } size_hex: 0x${this.size.toString(16)} }\n`;
       console.log(prefix, func_info, this.data_ptr.readByteArray(this.size));
       // callback
       let model = new CallbackModel();
@@ -204,7 +210,7 @@ export function hook_aes_set_encrypt_key(
       model.setData(this.data_ptr.readByteArray(this.size));
       callback(this, model);
     },
-    onLeave: function (retval) {},
+    onLeave: function (retval) { },
   });
 }
 export function hook_aes_cbc_encrypt(so_name: string) {
@@ -222,19 +228,16 @@ export function hook_aes_cbc_encrypt(so_name: string) {
       this.iv_ptr = args[4];
       this.mode = args[5];
       this.ivl = 16;
-      let in_func_info = `onEnter AES_cbc_encrypt in_ptr { mode: ${
-        this.mode
-      } size: ${this.len} size_hex: 0x${this.len.toString(16)} }\n`;
+      let in_func_info = `onEnter AES_cbc_encrypt in_ptr { mode: ${this.mode
+        } size: ${this.len} size_hex: 0x${this.len.toString(16)} }\n`;
       console.log(prefix, in_func_info, this.in_ptr.readByteArray(this.len));
-      let iv_func_info = `onEnter AES_cbc_encrypt iv_ptr { mode: ${
-        this.mode
-      } size: ${this.ivl} size_hex: 0x${this.ivl.toString(16)} }\n`;
+      let iv_func_info = `onEnter AES_cbc_encrypt iv_ptr { mode: ${this.mode
+        } size: ${this.ivl} size_hex: 0x${this.ivl.toString(16)} }\n`;
       console.log(prefix, iv_func_info, this.iv_ptr.readByteArray(this.ivl));
     },
     onLeave: function (retval) {
-      let out_func_info = `onLeave AES_cbc_encrypt out_ptr { mode: ${
-        this.mode
-      } size: ${this.len} size_hex: 0x${this.len.toString(16)} }\n`;
+      let out_func_info = `onLeave AES_cbc_encrypt out_ptr { mode: ${this.mode
+        } size: ${this.len} size_hex: 0x${this.len.toString(16)} }\n`;
       console.log(prefix, out_func_info, this.out_ptr.readByteArray(this.len));
     },
   });
@@ -256,19 +259,16 @@ export function hook_crypto_cbc128_encrypt(so_name: string) {
       this.len = args[2].toInt32();
       this.iv_ptr = args[4];
       this.ivl = 16;
-      let in_func_info = `onEnter CRYPTO_cbc128_encrypt in_ptr { size: ${
-        this.len
-      } size_hex: 0x${this.len.toString(16)} }\n`;
+      let in_func_info = `onEnter CRYPTO_cbc128_encrypt in_ptr { size: ${this.len
+        } size_hex: 0x${this.len.toString(16)} }\n`;
       console.log(prefix, in_func_info, this.in_ptr.readByteArray(this.len));
-      let iv_func_info = `onEnter CRYPTO_cbc128_encrypt iv_ptr { size: ${
-        this.ivl
-      } size_hex: 0x${this.ivl.toString(16)} }\n`;
+      let iv_func_info = `onEnter CRYPTO_cbc128_encrypt iv_ptr { size: ${this.ivl
+        } size_hex: 0x${this.ivl.toString(16)} }\n`;
       console.log(prefix, iv_func_info, this.iv_ptr.readByteArray(this.ivl));
     },
     onLeave: function (retval) {
-      let out_func_info = `onLeave CRYPTO_cbc128_encrypt out_ptr { size: ${
-        this.len
-      } size_hex: 0x${this.len.toString(16)} }\n`;
+      let out_func_info = `onLeave CRYPTO_cbc128_encrypt out_ptr { size: ${this.len
+        } size_hex: 0x${this.len.toString(16)} }\n`;
       console.log(prefix, out_func_info, this.out_ptr.readByteArray(this.len));
     },
   });
@@ -308,6 +308,33 @@ export function hook_tls13_hkdf_expand(so_name: string) {
       //   const outData = this.out.readByteArray(this.out_len.toInt32());
       //   console.log("输出密钥:", outData.hex());
       // }
+    },
+  });
+}
+
+export function start_logger_tlskey(so_name: string) {
+  var SSL_CTX_new_ptr = Module.getExportByName(so_name, "SSL_CTX_new");
+  var SSL_CTX_set_keylog_callback_ptr = Module.getExportByName(
+    so_name,
+    "SSL_CTX_set_keylog_callback"
+  );
+  function keyLogger(ssl: NativePointer, line: any) {
+    console.log("sslkey: " + new NativePointer(line).readCString());
+  }
+  const keyLogCallback = new NativeCallback(keyLogger, "void", [
+    "pointer",
+    "pointer",
+  ]);
+
+  Interceptor.attach(SSL_CTX_new_ptr, {
+    onLeave: function (retval) {
+      const ssl = new NativePointer(retval);
+      const SSL_CTX_set_keylog_callbackFn = new NativeFunction(
+        SSL_CTX_set_keylog_callback_ptr,
+        "void",
+        ["pointer", "pointer"]
+      );
+      SSL_CTX_set_keylog_callbackFn(ssl, keyLogCallback);
     },
   });
 }

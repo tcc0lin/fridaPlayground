@@ -7,6 +7,7 @@ import {
   hook_evp_encryptupdate,
   hook_evp_decryptupdate,
   hook_aes_set_encrypt_key,
+  hook_aes_set_decrypt_key,
   hook_aes_cbc_encrypt,
   hook_crypto_cbc128_encrypt,
   hook_tls13_hkdf_expand
@@ -32,6 +33,7 @@ export class SSL {
     hook_aes_cbc_encrypt(so_name);
     hook_crypto_cbc128_encrypt(so_name);
     hook_tls13_hkdf_expand(so_name);
+    hook_aes_set_decrypt_key(so_name, callback);
   }
   public hook_socket_stream() {
     hook_socket_stream();

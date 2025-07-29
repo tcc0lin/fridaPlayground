@@ -113,6 +113,64 @@ export function hook_evp_cipherupdate(so_name: string) {
     },
   });
 }
+export function hook_evp_encryptInit_ex(so_name: string, base: number) {
+  Interceptor.attach(Module.getBaseAddress(so_name).add(base), {
+    onEnter: function (args) {
+      console.log("\n[+] EVP_EncryptInit_ex call");
+      // 参数解析
+      // int EVP_EncryptInit_ex(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
+      //                        ENGINE *impl, const unsigned char *key,
+      //                        const unsigned char *iv);
+      this.ctx = args[0];
+      this.cipher = args[1];
+      this.engine = args[2];
+      this.key = args[3];
+      this.iv = args[4];
+      if (this.cipher && !this.cipher.isNull()) {
+        try {
+          var EVP_CIPHER_key_length = Module.findExportByName(so_name, "EVP_CIPHER_key_length");
+          var EVP_CIPHER_iv_length = Module.findExportByName(so_name, "EVP_CIPHER_iv_length");
+          if (EVP_CIPHER_key_length) {
+            this.key_len = new NativeFunction(EVP_CIPHER_key_length, 'int', ['pointer'])(this.cipher);
+            console.log("EVP_EncryptInit_ex key len:", this.key_len);
+          }
+          if (EVP_CIPHER_iv_length) {
+            this.iv_len = new NativeFunction(EVP_CIPHER_iv_length, 'int', ['pointer'])(this.cipher);
+            console.log("EVP_EncryptInit_ex iv len :", this.iv_len);
+          }
+        } catch (e) {
+          console.log("EVP_EncryptInit_ex get info error:", e);
+        }
+      }
+      if (this.key && !this.key.isNull() && this.key_len > 0) {
+        try {
+          var key_data = this.key.readByteArray(this.key_len);
+          console.log("EVP_EncryptInit_ex key (hex):", hexdump(key_data, {
+            offset: 0,
+            length: this.key_len,
+            header: false,
+            ansi: false
+          }));
+        } catch (e) {
+          console.log("EVP_EncryptInit_ex read key error:", e);
+        }
+      }
+      if (this.iv && !this.iv.isNull() && this.iv_len > 0) {
+        try {
+          var iv_data = this.iv.readByteArray(this.iv_len);
+          console.log("EVP_EncryptInit_ex iv (hex):", hexdump(iv_data, {
+            offset: 0,
+            length: this.iv_len,
+            header: false,
+            ansi: false
+          }));
+        } catch (e) {
+          console.log("EVP_EncryptInit_ex read iv error:", e);
+        }
+      }
+    }
+  });
+}
 export function hook_evp_encryptupdate(
   so_name: string,
   callback: (ctx: InvocationContext, model: CallbackModel) => void = () => { }
@@ -207,6 +265,32 @@ export function hook_aes_set_encrypt_key(
       // callback
       let model = new CallbackModel();
       model.setFunction("AES_set_encrypt_key");
+      model.setData(this.data_ptr.readByteArray(this.size));
+      callback(this, model);
+    },
+    onLeave: function (retval) { },
+  });
+}
+export function hook_aes_set_decrypt_key(
+  so_name: string,
+  callback: (ctx: InvocationContext, model: CallbackModel) => void = () => { }
+) {
+  let prefix = `[ ${so_name} ]`;
+  var AES_set_decrypt_key_ptr = Module.getExportByName(
+    so_name,
+    "AES_set_decrypt_key"
+  );
+  // AES_set_encrypt_key
+  Interceptor.attach(AES_set_decrypt_key_ptr, {
+    onEnter: function (args) {
+      this.data_ptr = args[0];
+      this.size = 16;
+      let func_info = `onEnter AES_set_decrypt_key { size: ${this.size
+        } size_hex: 0x${this.size.toString(16)} }\n`;
+      console.log(prefix, func_info, this.data_ptr.readByteArray(this.size));
+      // callback
+      let model = new CallbackModel();
+      model.setFunction("AES_set_decrypt_key");
       model.setData(this.data_ptr.readByteArray(this.size));
       callback(this, model);
     },
